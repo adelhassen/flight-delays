@@ -23,6 +23,7 @@ from evidently.report import Report
 from evidently.metrics import DatasetSummaryMetric
 from evidently.metric_preset import DataDriftPreset, ClassificationPreset
 from evidently import ColumnMapping
+import boto3
 
 
 @task
@@ -358,6 +359,12 @@ def create_monitoring_report(reference_data, current_data):
     classification_performance_report.run(reference_data=reference_data, current_data=current_data, column_mapping=column_mapping)
 
     classification_performance_report.save_html("reports/Monitoring_Report.html")
+
+    # Upload the file to S3
+    s3_client = boto3.client('s3')
+    with open("reports/Monitoring_Report.html", 'rb') as file:
+        s3_client.upload_fileobj(file, "flight-delay-mlflow", "reports/Monitoring_Report.html")
+
 
 
 

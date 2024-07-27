@@ -4,6 +4,7 @@ import mlflow
 from mlflow.tracking import MlflowClient
 import xgboost as xgb
 import pickle
+import boto3
 
 MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
@@ -12,7 +13,8 @@ client = MlflowClient(MLFLOW_TRACKING_URI)
 registered_model = client.search_registered_models(filter_string="name='xgboost_best_model_test'")
 registered_model_run_id = registered_model[0].latest_versions[0].run_id
 
-logged_model = f'runs:/{registered_model_run_id}/models'
+# logged_model = f'runs:/{registered_model_run_id}/models'
+logged_model = f's3://flight-delay-mlflow/2/{registered_model_run_id}/artifacts/models'
 
 # Load model as a XGBoost
 model_to_deploy = mlflow.xgboost.load_model(logged_model)
