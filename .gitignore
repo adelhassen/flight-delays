@@ -160,3 +160,20 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+
+flight_delay_venv/
+
+mlruns/
+
+artifacts_local/
+
+models/
+
+/flight_data_code.ipynb
+
+backend.db
+
+data/
+
+reports/Monitoring_Report.html
