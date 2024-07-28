@@ -302,6 +302,14 @@ def run_register_model(train, valid, test, y_val, y_test, dv, client, top_n: 5):
     model_uri = f"runs:/{run_id}/model"
     mlflow.register_model(model_uri, name="xgboost_best_model_test")
 
+    # Save run_id to txt file
+    with open('best_run_id.txt', 'w') as f_out:
+        f_out.write(run_id)
+
+    # Upload the file to S3
+    s3_client = boto3.client('s3')
+    s3_client.put_object(Body=run_id, Bucket="flight-delay-mlflow", Key="best_run_id.txt")
+
 
 @task
 def get_monitoring_data(xgb_data, X, client):
@@ -320,7 +328,7 @@ def get_monitoring_data(xgb_data, X, client):
     registered_model = client.search_registered_models(filter_string="name='xgboost_best_model_test'")
     registered_model_run_id = registered_model[0].latest_versions[0].run_id
 
-    logged_model = f'runs:/{registered_model_run_id}/models'
+    logged_model = f's3://flight-delay-mlflow/2/{registered_model_run_id}/artifacts/models'
 
     X["Arrival Delay"] = np.where(X["ARR_DEL15"] == 0, "On Time", "Delay")
     X.drop("ARR_DEL15", axis=1, inplace=True)

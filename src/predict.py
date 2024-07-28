@@ -6,23 +6,34 @@ import xgboost as xgb
 import pickle
 import boto3
 
-MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-client = MlflowClient(MLFLOW_TRACKING_URI)
+# MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+# mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+# client = MlflowClient(MLFLOW_TRACKING_URI)
 
-registered_model = client.search_registered_models(filter_string="name='xgboost_best_model_test'")
-registered_model_run_id = registered_model[0].latest_versions[0].run_id
+# registered_model = client.search_registered_models(filter_string="name='xgboost_best_model_test'")
+# registered_model_run_id = registered_model[0].latest_versions[0].run_id
+
 
 # logged_model = f'runs:/{registered_model_run_id}/models'
-logged_model = f's3://flight-delay-mlflow/2/{registered_model_run_id}/artifacts/models'
+
+s3_bucket_path = "s3://flight-delay-mlflow/2"
+s3_client = boto3.client('s3')
+response = s3_client.get_object(Bucket="flight-delay-mlflow", Key='best_run_id.txt')
+best_run_id = response['Body'].read().decode('utf-8')
+
+logged_model = f'{s3_bucket_path}/{best_run_id}/artifacts/models'
 
 # Load model as a XGBoost
 model_to_deploy = mlflow.xgboost.load_model(logged_model)
 
-path_to_dv = client.download_artifacts(run_id=registered_model_run_id, path='preprocessor/preprocessor.b')
+# Load dv from s3
+s3 = boto3.resource("s3")
+dv = pickle.loads(s3.Bucket("flight-delay-mlflow").Object(f"2/{best_run_id}/artifacts/preprocessor/preprocessor.b").get()['Body'].read())
 
-with open(path_to_dv, 'rb') as f_out:
-    dv = pickle.load(f_out)
+# path_to_dv = client.download_artifacts(run_id=registered_model_run_id, path='preprocessor/preprocessor.b')
+
+# with open(path_to_dv, 'rb') as f_out:
+#     dv = pickle.load(f_out)
 
 
 def predict(features):
