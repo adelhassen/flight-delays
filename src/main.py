@@ -5,11 +5,8 @@ import numpy as np
 from datetime import datetime, timedelta
 import seaborn as sns
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.metrics import auc, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, log_loss, average_precision_score
-from sklearn.metrics import classification_report,confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, log_loss, average_precision_score
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from hyperopt.pyll import scope
@@ -19,9 +16,7 @@ from mlflow.tracking import MlflowClient
 import pickle
 from prefect import flow, task
 from prefect.task_runners import SequentialTaskRunner
-from prefect.client.schemas.schedules import IntervalSchedule
 from evidently.report import Report
-from evidently.metrics import DatasetSummaryMetric
 from evidently.metric_preset import DataDriftPreset, ClassificationPreset
 from evidently import ColumnMapping
 import boto3
@@ -285,7 +280,7 @@ def train_and_log_model(train, valid, test, y_val, y_test, dv, params):
 def run_register_model(train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_BUCKET, top_n: 5):
     
     # Retrieve the top_n model runs and log the models
-    experiment = client.get_experiment_by_name("flight_delay_local_test")
+    experiment = client.get_experiment_by_name("flight_delay")
     runs = client.search_runs(
         experiment_ids=experiment.experiment_id,
         filter_string="tags.purpose='Tune XGBClassifier'",
@@ -298,7 +293,7 @@ def run_register_model(train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_
         train_and_log_model(train, valid, test, y_val, y_test, dv, params=run.data.params)
 
     # Select the model with the lowest test RMSE
-    experiment = client.get_experiment_by_name("xgboost_best_models_test")
+    experiment = client.get_experiment_by_name("xgboost_best_models")
     best_run = client.search_runs(
         experiment_ids=experiment.experiment_id,
         run_view_type=ViewType.ACTIVE_ONLY,
@@ -309,7 +304,7 @@ def run_register_model(train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_
     # Register the best model
     run_id = best_run.info.run_id
     model_uri = f"runs:/{run_id}/model"
-    mlflow.register_model(model_uri, name="xgboost_best_model_test")
+    mlflow.register_model(model_uri, name="xgboost_best_models")
 
     # Upload the best run_id to S3 file
     s3_client = boto3.client('s3')
@@ -339,12 +334,6 @@ def get_monitoring_data(xgb_data, X, client, MLFLOW_S3_BUCKET):
 
     # Load model as a XGBoost
     model_to_deploy = mlflow.xgboost.load_model(logged_model)
-
-    
-    # registered_model = client.search_registered_models(filter_string="name='xgboost_best_model_test'")
-    # registered_model_run_id = registered_model[0].latest_versions[0].run_id
-
-    # logged_model = f's3://flight-delay-mlflow/2/{registered_model_run_id}/artifacts/models'
 
     X["Arrival Delay"] = np.where(X["ARR_DEL15"] == 0, "On Time", "Delay")
     X.drop("ARR_DEL15", axis=1, inplace=True)
@@ -396,11 +385,11 @@ def create_monitoring_report(reference_data, current_data, MLFLOW_S3_BUCKET):
 def main_flow():
 
     load_dotenv(".env")
-    # mlflow server --backend-store-uri sqlite:///backend.db --default-artifact-root=artifacts_local
+
     MLFLOW_S3_BUCKET = os.getenv("MLFLOW_S3_BUCKET")
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    mlflow.set_experiment("flight_delay_local_test")
+    mlflow.set_experiment("flight_delay")
     client = MlflowClient(MLFLOW_TRACKING_URI)
 
     train_data_raw = read_data("data/july_2023.csv.zip")
@@ -424,7 +413,7 @@ def main_flow():
     tune_xgboost(train, valid, y_val, "auc", dv)
     tune_xgboost(train, valid, y_val, "aucpr", dv)
 
-    mlflow.set_experiment("xgboost_best_models_test")
+    mlflow.set_experiment("xgboost_best_models")
 
     run_register_model(train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_BUCKET, top_n=5)
 

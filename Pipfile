@@ -18,6 +18,7 @@ seaborn = "*"
 hyperopt = "*"
 evidently = "*"
 python-dotenv = "*"
+bottleneck = "==1.4.0"
 
 [dev-packages]
 
