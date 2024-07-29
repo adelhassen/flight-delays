@@ -1,0 +1,58 @@
+SYS_FIELD_NAME,FIELD_DESC
+YEAR,Year
+QUARTER,Quarter (1-4)
+MONTH,Month
+DAY_OF_MONTH,Day of Month
+DAY_OF_WEEK,Day of Week
+FL_DATE,Flight Date (yyyymmdd)
+OP_UNIQUE_CARRIER,"Unique Carrier Code. When the same code has been used by multiple carriers, a numeric suffix is used for earlier users, for example, PA, PA(1), PA(2). Use this field for analysis across a range of years."
+OP_CARRIER_AIRLINE_ID,"An identification number assigned by US DOT to identify a unique airline (carrier). A unique airline (carrier) is defined as one holding and reporting under the same DOT certificate regardless of its Code, Name, or holding company/corporation."
+OP_CARRIER,"Code assigned by IATA and commonly used to identify a carrier. As the same code may have been assigned to different carriers over time, the code is not always unique. For analysis, use the Unique Carrier Code."
+TAIL_NUM,Tail Number
+OP_CARRIER_FL_NUM,Flight Number
+ORIGIN_AIRPORT_ID,"Origin Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport.  Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused."
+ORIGIN_AIRPORT_SEQ_ID,"Origin Airport, Airport Sequence ID. An identification number assigned by US DOT to identify a unique airport at a given point of time.  Airport attributes, such as airport name or coordinates, may change over time."
+ORIGIN_CITY_MARKET_ID,"Origin Airport, City Market ID. City Market ID is an identification number assigned by US DOT to identify a city market.  Use this field to consolidate airports serving the same city market."
+ORIGIN,Origin Airport
+ORIGIN_CITY_NAME,"Origin Airport, City Name"
+ORIGIN_STATE_ABR,"Origin Airport, State Code"
+ORIGIN_STATE_NM,"Origin Airport, State Name"
+DEST_AIRPORT_ID,"Destination Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport.  Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused."
+DEST_AIRPORT_SEQ_ID,"Destination Airport, Airport Sequence ID. An identification number assigned by US DOT to identify a unique airport at a given point of time.  Airport attributes, such as airport name or coordinates, may change over time."
+DEST_CITY_MARKET_ID,"Destination Airport, City Market ID. City Market ID is an identification number assigned by US DOT to identify a city market.  Use this field to consolidate airports serving the same city market."
+DEST,Destination Airport
+DEST_CITY_NAME,"Destination Airport, City Name"
+DEST_STATE_ABR,"Destination Airport, State Code"
+DEST_STATE_NM,"Destination Airport, State Name"
+CRS_DEP_TIME,CRS Departure Time (local time: hhmm)
+DEP_TIME,Actual Departure Time (local time: hhmm)
+DEP_DELAY,Difference in minutes between scheduled and actual departure time. Early departures show negative numbers.
+DEP_DELAY_NEW,Difference in minutes between scheduled and actual departure time. Early departures set to 0.
+DEP_DEL15,"Departure Delay Indicator, 15 Minutes or More (1=Yes)"
+DEP_DELAY_GROUP,"Departure Delay intervals, every (15 minutes from <-15 to >180)"
+DEP_TIME_BLK,"CRS Departure Time Block, Hourly Intervals"
+TAXI_OUT,"Taxi Out Time, in Minutes"
+WHEELS_OFF,Wheels Off Time (local time: hhmm)
+WHEELS_ON,Wheels On Time (local time: hhmm)
+TAXI_IN,"Taxi In Time, in Minutes"
+CRS_ARR_TIME,CRS Arrival Time (local time: hhmm)
+ARR_TIME,Actual Arrival Time (local time: hhmm)
+ARR_DELAY,Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers.
+ARR_DELAY_NEW,Difference in minutes between scheduled and actual arrival time. Early arrivals set to 0.
+ARR_DEL15,"Arrival Delay Indicator, 15 Minutes or More (1=Yes)"
+ARR_DELAY_GROUP,"Arrival Delay intervals, every (15-minutes from <-15 to >180)"
+ARR_TIME_BLK,"CRS Arrival Time Block, Hourly Intervals"
+CANCELLED,Cancelled Flight Indicator (1=Yes)
+CANCELLATION_CODE,Specifies The Reason For Cancellation
+DIVERTED,Diverted Flight Indicator (1=Yes)
+CRS_ELAPSED_TIME,"CRS Elapsed Time of Flight, in Minutes"
+ACTUAL_ELAPSED_TIME,"Elapsed Time of Flight, in Minutes"
+AIR_TIME,"Flight Time, in Minutes"
+FLIGHTS,Number of Flights
+DISTANCE,Distance between airports (miles)
+DISTANCE_GROUP,"Distance Intervals, every 250 Miles, for Flight Segment"
+CARRIER_DELAY,"Carrier Delay, in Minutes"
+WEATHER_DELAY,"Weather Delay, in Minutes"
+NAS_DELAY,"National Air System Delay, in Minutes"
+SECURITY_DELAY,"Security Delay, in Minutes"
+LATE_AIRCRAFT_DELAY,"Late Aircraft Delay, in Minutes"
