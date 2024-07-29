@@ -68,7 +68,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    - Configure storage: 30GiB
 2. **Configure Security Group**: Ports 4200 (Prefect), 5000 (MLFlow), and 9696 (Flask) needed to be opened in addition to port 22 (SSH) for source 0.0.0.0/0
 3. **Set up EC2 Instance**:
-   - Download python 3.11.5 from anaconda to avoid any python version issues using:
+   - Download Python 3.11.5 from Anaconda to avoid any Python version issues using:
      ```bash
      wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
      ```
@@ -87,8 +87,15 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    ```bash
    cd flight-delays/
    ```
-3. **Setting Environment Variables**: Configure environment variables as needed.
+2. **Setting Environment Variables**: Configure environment variables in set_env.sh:
+   - AWS_ACCESS_KEY_ID: Generate one using AWS.
+   - AWS_SECRET_ACCESS_KEY: Generate one using AWS.
+   - AWS_DEFAULT_REGION: Set this to your default AWS region.
+   - MLFLOW_S3_BUCKET: Set this as the name of the S3 bucket created in Step 4 of Machine Setup.
+   - MLFLOW_TRACKING_URI: Use http://127.0.0.1:5000 for local development or replace 127.0.0.1 with EC2 Public IPv4 address if on EC2 instance.
+   - PREFECT_API_URL: Use http://127.0.0.1:4200/api for local development or replace 127.0.0.1 with EC2 Public IPv4 address if on EC2 instance.
    
+3. **Run set_env.sh**: This will save environment variables in a .env file.
 5. **Building and Running Docker Image**: Build and run the Docker image for a consistent and isolated environment.
 6. **Virtual Environment**: Create and activate a virtual environment for running specific scripts.
 
