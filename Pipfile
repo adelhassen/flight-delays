@@ -17,6 +17,7 @@ numpy = "*"
 seaborn = "*"
 hyperopt = "*"
 evidently = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

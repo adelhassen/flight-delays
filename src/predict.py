@@ -1,10 +1,11 @@
-
+import os
 from flask import Flask, request, jsonify
 import mlflow
 from mlflow.tracking import MlflowClient
 import xgboost as xgb
 import pickle
 import boto3
+from dotenv import load_dotenv
 
 # MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
 # mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
@@ -15,10 +16,11 @@ import boto3
 
 
 # logged_model = f'runs:/{registered_model_run_id}/models'
-
-s3_bucket_path = "s3://flight-delay-mlflow/2"
+load_dotenv(".env")
+MLFLOW_S3_BUCKET = os.getenv("MLFLOW_S3_BUCKET")
+s3_bucket_path = f"s3://{MLFLOW_S3_BUCKET}/2"
 s3_client = boto3.client('s3')
-response = s3_client.get_object(Bucket="flight-delay-mlflow", Key='best_run_id.txt')
+response = s3_client.get_object(Bucket=MLFLOW_S3_BUCKET, Key='best_run_id.txt')
 best_run_id = response['Body'].read().decode('utf-8')
 
 logged_model = f'{s3_bucket_path}/{best_run_id}/artifacts/models'
@@ -28,7 +30,7 @@ model_to_deploy = mlflow.xgboost.load_model(logged_model)
 
 # Load dv from s3
 s3 = boto3.resource("s3")
-dv = pickle.loads(s3.Bucket("flight-delay-mlflow").Object(f"2/{best_run_id}/artifacts/preprocessor/preprocessor.b").get()['Body'].read())
+dv = pickle.loads(s3.Bucket(MLFLOW_S3_BUCKET).Object(f"2/{best_run_id}/artifacts/preprocessor/preprocessor.b").get()['Body'].read())
 
 # path_to_dv = client.download_artifacts(run_id=registered_model_run_id, path='preprocessor/preprocessor.b')
 

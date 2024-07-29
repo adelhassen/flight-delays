@@ -1,4 +1,5 @@
 import os
+import zipfile
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -24,12 +25,20 @@ from evidently.metrics import DatasetSummaryMetric
 from evidently.metric_preset import DataDriftPreset, ClassificationPreset
 from evidently import ColumnMapping
 import boto3
+from dotenv import load_dotenv
 
 
 @task
 def read_data(file_path:str, file_path_airline_codes:str = "data/L_UNIQUE_CARRIERS.csv"):
 
-    df = pd.read_csv(file_path)
+    # Open the ZIP file
+    with zipfile.ZipFile(file_path, 'r') as z:
+        # Identify the CSV file, ignoring system files like __MACOSX
+        csv_file_name = [f for f in z.namelist() if f.endswith('.csv') and not f.startswith('__MACOSX/')][0]
+        # Read the specific CSV file
+        with z.open(csv_file_name) as f:
+            df = pd.read_csv(f)
+
     op_unique_carrier_lookup = pd.read_csv(file_path_airline_codes)
     
     df = (
@@ -273,8 +282,8 @@ def train_and_log_model(train, valid, test, y_val, y_test, dv, params):
 
 
 @task
-def run_register_model(train, valid, test, y_val, y_test, dv, client, top_n: 5):
-
+def run_register_model(train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_BUCKET, top_n: 5):
+    print(MLFLOW_S3_BUCKET)
     # Retrieve the top_n model runs and log the models
     experiment = client.get_experiment_by_name("flight_delay_local_test")
     runs = client.search_runs(
@@ -302,17 +311,13 @@ def run_register_model(train, valid, test, y_val, y_test, dv, client, top_n: 5):
     model_uri = f"runs:/{run_id}/model"
     mlflow.register_model(model_uri, name="xgboost_best_model_test")
 
-    # Save run_id to txt file
-    with open('best_run_id.txt', 'w') as f_out:
-        f_out.write(run_id)
-
-    # Upload the file to S3
+    # Upload the best run_id to S3 file
     s3_client = boto3.client('s3')
-    s3_client.put_object(Body=run_id, Bucket="flight-delay-mlflow", Key="best_run_id.txt")
+    s3_client.put_object(Body=run_id, Bucket=MLFLOW_S3_BUCKET, Key="best_run_id.txt")
 
 
 @task
-def get_monitoring_data(xgb_data, X, client):
+def get_monitoring_data(xgb_data, X, client, MLFLOW_S3_BUCKET):
 
     X = X.drop(["DISTANCE", "ARR_DELAY"], axis=1).copy()
 
@@ -324,11 +329,22 @@ def get_monitoring_data(xgb_data, X, client):
             }
         )
     )
-    
-    registered_model = client.search_registered_models(filter_string="name='xgboost_best_model_test'")
-    registered_model_run_id = registered_model[0].latest_versions[0].run_id
 
-    logged_model = f's3://flight-delay-mlflow/2/{registered_model_run_id}/artifacts/models'
+    s3_bucket_path = f"s3://{MLFLOW_S3_BUCKET}/2"
+    s3_client = boto3.client('s3')
+    response = s3_client.get_object(Bucket=MLFLOW_S3_BUCKET, Key='best_run_id.txt')
+    best_run_id = response['Body'].read().decode('utf-8')
+
+    logged_model = f'{s3_bucket_path}/{best_run_id}/artifacts/models'
+
+    # Load model as a XGBoost
+    model_to_deploy = mlflow.xgboost.load_model(logged_model)
+
+    
+    # registered_model = client.search_registered_models(filter_string="name='xgboost_best_model_test'")
+    # registered_model_run_id = registered_model[0].latest_versions[0].run_id
+
+    # logged_model = f's3://flight-delay-mlflow/2/{registered_model_run_id}/artifacts/models'
 
     X["Arrival Delay"] = np.where(X["ARR_DEL15"] == 0, "On Time", "Delay")
     X.drop("ARR_DEL15", axis=1, inplace=True)
@@ -346,7 +362,7 @@ def get_monitoring_data(xgb_data, X, client):
 
 
 @task
-def create_monitoring_report(reference_data, current_data):
+def create_monitoring_report(reference_data, current_data, MLFLOW_S3_BUCKET):
 
     categorical = ["AIRLINE", "ORIGIN", "DEST", "DAY_OF_MONTH", "DAY_OF_WEEK"]
     numerical = ["CRS_DEP_TIME", "CRS_ARR_TIME", "CRS_ELAPSED_TIME"]
@@ -371,7 +387,7 @@ def create_monitoring_report(reference_data, current_data):
     # Upload the file to S3
     s3_client = boto3.client('s3')
     with open("reports/Monitoring_Report.html", 'rb') as file:
-        s3_client.upload_fileobj(file, "flight-delay-mlflow", "reports/Monitoring_Report.html")
+        s3_client.upload_fileobj(file, MLFLOW_S3_BUCKET, "reports/Monitoring_Report.html")
 
 
 
@@ -379,15 +395,17 @@ def create_monitoring_report(reference_data, current_data):
 @flow(task_runner=SequentialTaskRunner())
 def main_flow():
 
+    load_dotenv(".env")
     # mlflow server --backend-store-uri sqlite:///backend.db --default-artifact-root=artifacts_local
-    MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+    MLFLOW_S3_BUCKET = os.getenv("MLFLOW_S3_BUCKET")
+    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     mlflow.set_experiment("flight_delay_local_test")
     client = MlflowClient(MLFLOW_TRACKING_URI)
 
-    train_data_raw = read_data("data/july_2023.csv")
-    valid_data_raw = read_data("data/august_2023.csv")
-    test_data_raw = read_data("data/september_2023.csv")
+    train_data_raw = read_data("data/july_2023.csv.zip")
+    valid_data_raw = read_data("data/august_2023.csv.zip")
+    test_data_raw = read_data("data/september_2023.csv.zip")
 
     X_train_raw, y_train = feature_engineering(train_data_raw)
     X_val_raw, y_val = feature_engineering(valid_data_raw)
@@ -408,12 +426,12 @@ def main_flow():
 
     mlflow.set_experiment("xgboost_best_models_test")
 
-    run_register_model(train, valid, test, y_val, y_test, dv, client, top_n=5)
+    run_register_model(train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_BUCKET, top_n=5)
 
-    reference_data = get_monitoring_data(train, train_data_raw, client)
-    current_data = get_monitoring_data(valid, valid_data_raw, client)
+    reference_data = get_monitoring_data(train, train_data_raw, client, MLFLOW_S3_BUCKET)
+    current_data = get_monitoring_data(valid, valid_data_raw, client, MLFLOW_S3_BUCKET)
 
-    create_monitoring_report(reference_data, current_data)
+    create_monitoring_report(reference_data, current_data, MLFLOW_S3_BUCKET)
 
 
 if __name__ =='__main__':
