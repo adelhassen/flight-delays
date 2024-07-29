@@ -428,7 +428,7 @@ if __name__ =='__main__':
        name="train_flight_delay_model",
        # Run every week
        interval=timedelta(days=7),
-       description="ML pipeline to process, train, and find best fligh delay model.",
+       description="ML pipeline to process, train, and find best flight delay model.",
        tags=["flight", "ml-pipeline"],
     )
     
