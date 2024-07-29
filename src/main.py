@@ -283,7 +283,7 @@ def train_and_log_model(train, valid, test, y_val, y_test, dv, params):
 
 @task
 def run_register_model(train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_BUCKET, top_n: 5):
-    print(MLFLOW_S3_BUCKET)
+    
     # Retrieve the top_n model runs and log the models
     experiment = client.get_experiment_by_name("flight_delay_local_test")
     runs = client.search_runs(
