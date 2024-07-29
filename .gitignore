@@ -178,7 +178,6 @@ data/weather_meteo_by_airport.csv
 data/july_2023.csv
 data/august_2023.csv
 data/september_2023.csv
-data/L_UNIQUE_CARRIERS.csv
 data/flight_data.zip
 
 reports/Monitoring_Report.html
