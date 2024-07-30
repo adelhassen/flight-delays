@@ -209,6 +209,7 @@ You should have three terminals running: Docker-deployed model API endpoint, MLF
 - **Multi-container Docker**: Create containers to host all services.
 
 ### Acknowledgments
-- Bureau of Transportation Statistics for providing the dataset.
-- Open source libraries and tools used in the project: MLflow, Prefect, Evidently, Docker, Hyperopt, XGBoost, and more.
+- Bureau of Transportation Statistics for making the data accessible.
+- Open source libraries and tools used in the project: MLflow, Prefect, Evidently, Docker, Hyperopt, XGBoost, DTale, and more.
+- [Alexey Grigorev](https://github.com/alexeygrigorev) and the [DataTalksClub](https://datatalks.club/) community.
 
