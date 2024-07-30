@@ -2,15 +2,15 @@
 
 ## Project Description
 
-The Flight Delay Predictor project is designed to build a robust, industry-grade machine learning pipeline for predicting flight delays. A flight is considered delayed if it is 15 minutes or more late, as per the United States Federal Aviation Administration (FAA) standards. The prediction model utilizes historical flight data to make accurate predictions about future flight delays.
+The Flight Delay Predictor project is designed to build a robust machine learning pipeline for predicting flight delays. A flight is considered delayed if it is 15 minutes or more late as per the United States Federal Aviation Administration (FAA) standards. The prediction model utilizes historical flight data to make accurate predictions about future flight delays.
 
-Flight delays are significant for several reasons. They affect customer satisfaction, with passengers experiencing frustration and inconvenience due to unexpected wait times. Economically, delays can lead to increased operational costs for airlines and airports, including costs related to fuel, crew, and ground services. Moreover, delayed flights can cause cascading effects across the entire flight network, leading to broader disruptions. Therefore, accurately predicting flight delays can help in better resource allocation, improved customer satisfaction, and overall operational efficiency.
+Flight delays are significant for several reasons. They affect customer satisfaction, with passengers experiencing frustration and inconvenience due to unexpected wait times. Economically, delays can lead to increased operational costs for airlines and airports, including costs related to fuel, crew, and ground services. Delayed flights can also cause cascading effects across the entire flight network, leading to broader disruptions. Accurately predicting flight delays can help in better resource allocation, improved customer satisfaction, and overall operational efficiency.
 
 ## Objective
 
 The primary objective of this project is to develop a robust machine learning pipeline to predict flight delays using historical data. The focus is on creating an industry-grade machine learning workflow that includes essential MLOps components such as:
 
-- **Experiment Tracking**: Utilizing MLFlow to track and manage experiments, logging parameters, metrics, and models.
+- **Experiment Tracking**: Utilizing MLFlow to track and manage experiments by logging parameters, metrics, and models.
 - **Workflow Orchestration**: Using Prefect to manage and orchestrate the different tasks in the pipeline, ensuring smooth execution and monitoring.
 - **Model Deployment and Monitoring**: Deploying the best model and setting up monitoring using Evidently to track data drift and model performance over time.
 - **Environment Management**: Using virtual environments and Docker to maintain complex working environments.
@@ -19,7 +19,7 @@ A key consideration in this project is to avoid any data leakage by ensuring tha
 
 ## Data
 
-The dataset used for this project is the Bureau of Transportation Statistics’ “Reporting Carrier-On Time Performance” dataset. This dataset is available at [this link](https://www.transtats.bts.gov/Fields.asp?gnoyr_VQ=FGJ) and contains monthly data from 1987. It includes various details such as:
+The dataset used for this project is the Bureau of Transportation Statistics’ “Reporting Carrier-On Time Performance” dataset. This dataset is available at [this link](https://www.transtats.bts.gov/Fields.asp?gnoyr_VQ=FGJ) and contains monthly data dating back to 1987. It includes various details such as:
 
 - **Arrival Information**: Arrival times, delay times, etc.
 - **Departure Information**: Departure times, delay times, etc.
@@ -61,18 +61,20 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
 ### Machine Setup
 
 1. **Set up Machine**: Create an EC2 instance or run it locally on your computer. If you run on an EC2 instance:
+   ![images/ec2_setup.png](https://github.com/adelhassen/flight-delays/blob/7327c4bdc83599f4ff278b9e6392af31ba0599e3/images/ec2_setup.png)
 
    - Ubuntu
    - 64-bit (x86)
-   - t2.xlarge (t2.micro on free tier should be enough too)
+   - t2.xlarge (t2.micro on free tier should be enough)
    - Configure storage: 30GiB
    - Set up a key pair
-2. **Configure Security Group**: Ports 4200 (Prefect), 5000 (MLFlow), and 9696 (Flask) needed to be opened in addition to port 22 (SSH) for source 0.0.0.0/0
-3. **SSH into EC2 Instance**: Access your EC2 through SSH.
+3. **Configure Security Group**: Ports `4200` (Prefect), `5000` (MLFlow), and `9696` (Flask) needed to be opened in addition to port `22` (SSH) for source 0.0.0.0/0
+   ![](https://github.com/adelhassen/flight-delays/blob/7327c4bdc83599f4ff278b9e6392af31ba0599e3/images/ec2_security_group.png)
+5. **SSH into EC2 Instance**: Access your EC2 through SSH.
     ```bash
     ssh -i "your-key-pair.pem" ubuntu@ec2-xx-xxx-xxx-x.compute-1.amazonaws.com
     ```
-4. **Set up EC2 Instance**:
+6. **Set up EC2 Instance**:
    - Download Python 3.11.5 from Anaconda to avoid any Python version issues using:
      ```bash
      wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
@@ -97,8 +99,8 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    - AWS_SECRET_ACCESS_KEY: Generate one using AWS.
    - AWS_DEFAULT_REGION: Set this to your default AWS region.
    - MLFLOW_S3_BUCKET: Set this as the name of the S3 bucket created in Step 4 of Machine Setup.
-   - MLFLOW_TRACKING_URI: Use http://127.0.0.1:5000 for local development or replace 127.0.0.1 with EC2 Public IPv4 address if on EC2 instance.
-   - PREFECT_API_URL: Use http://127.0.0.1:4200/api for local development or replace 127.0.0.1 with EC2 Public IPv4 address if on EC2 instance.
+   - MLFLOW_TRACKING_URI: Use `http://127.0.0.1:5000` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
+   - PREFECT_API_URL: Use `http://127.0.0.1:4200/api` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
    
 3. **Run set_env.sh**: This will save environment variables in a .env file.
    ```bash
@@ -124,7 +126,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    ```bash
    cd flight-delays/ && source set_env.sh
    ```
-4. **Virtual Environment**: Create and activate a virtual environment for running specific scripts. After you run this once, you can use `pipenv shell` to activate the virtual environment.
+4. **Virtual Environment**: Create and activate a virtual environment for running specific scripts. After you run this once, you can use `pipenv shell` to activate the virtual environment going forward.
    ```bash
    pip install --upgrade pip
    ```
@@ -141,6 +143,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    ```bash
    mlflow server --backend-store-uri sqlite:///backend.db --default-artifact-root=s3://$MLFLOW_S3_BUCKET/ -h 0.0.0.0
    ```
+   ![](https://github.com/adelhassen/flight-delays/blob/7327c4bdc83599f4ff278b9e6392af31ba0599e3/images/mlflow_experiments.png)
 6. **Open a New Terminal and SSH into EC2 Instance**:
     ```bash
     ssh -i "your-key-pair.pem" ubuntu@ec2-xx-xxx-xxx-x.compute-1.amazonaws.com
@@ -156,6 +159,8 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
     ```bash
     prefect server start
     ```
+    ![](https://github.com/adelhassen/flight-delays/blob/7327c4bdc83599f4ff278b9e6392af31ba0599e3/images/prefect_runs.png)
+
 
 You should have three terminals running: Docker-deployed model API endpoint, MLFLow server, and Prefect server.
     
@@ -166,7 +171,7 @@ You should have three terminals running: Docker-deployed model API endpoint, MLF
    ```bash
    cd flight-delays/ && source set_env.sh && pipenv shell
    ```
-2. **Main Script**: Run `src/main.py` which handles data reading, feature engineering, model training, hyperparameter tuning, evaluation, and monitoring reports. Running this command will serve the model but not trigger a run in Prefect. The workflow is fully deployed and runs on a schedule, but we will trigger a run to test it now.
+2. **Main Script**: Run `src/main.py` which handles data reading, feature engineering, model training, hyperparameter tuning, evaluation, selecting and registering the best model, and creating monitoring reports. Running this command will serve the model but not trigger a run in Prefect. The workflow is fully deployed and runs on a schedule, but we will trigger a run to test it now.
    ```bash
    python src/main/py
    ```
@@ -174,14 +179,16 @@ You should have three terminals running: Docker-deployed model API endpoint, MLF
    ```bash
    cd flight-delays/ && source set_env.sh && pipenv shell
    ```
-4. **Deploy Prefect Flow**: Trigger a Prefect run by running the following command:
+4. **Deploy Prefect Flow**: Trigger a Prefect run which will execute `src/main.py` by running the following command:
    ```bash
    prefect deployment run 'main-flow/train_flight_delay_model'
    ```
+   ![](https://github.com/adelhassen/flight-delays/blob/7327c4bdc83599f4ff278b9e6392af31ba0599e3/images/prefect_flow.png)
 5. **API Endpoint**: Use `src/example.py` to test the Docker API endpoint that provides delay predictions.
    ```bash
    python src/example.py
    ```
+  ![](https://github.com/adelhassen/flight-delays/blob/7327c4bdc83599f4ff278b9e6392af31ba0599e3/images/evidently_classification.png) 
 
 ### Testing
 
@@ -193,5 +200,15 @@ You should have three terminals running: Docker-deployed model API endpoint, MLF
   ```bash
   python tests/integration_test.py
   ```
+### Improvements and Next Steps
 
+- **Improve Model**: Use more data, create historical features, and create more temporal features.
+- **Infrastructure Management**: To provision and manage infrastructure.
+- **CI/CD**: Automate build, test, and deploy processes.
+- **Document and Comment Code**: Add information to make code and repo easier to understand.
+- **Multi-container Docker**: Create containers to host all services.
+
+### Acknowledgments
+- Bureau of Transportation Statistics for providing the dataset.
+- Open source libraries and tools used in the project: MLflow, Prefect, Evidently, Docker, Hyperopt, XGBoost, and more.
 
