@@ -37,7 +37,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
 - **Scheduled Departure Time**
 - **Scheduled Arrival Time**
 - **Scheduled Elapsed Time**
-- **Distance** (considered initially but dropped as it is difficult to predict)
+- **Distance** (considered initially but dropped as it is highly correlated to Scheduled Elapsed Time and difficult for one to retrieve)
 
 ## Pipeline Components
 
@@ -66,15 +66,20 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    - 64-bit (x86)
    - t2.xlarge (t2.micro on free tier should be enough too)
    - Configure storage: 30GiB
+   - Set up a key pair
 2. **Configure Security Group**: Ports 4200 (Prefect), 5000 (MLFlow), and 9696 (Flask) needed to be opened in addition to port 22 (SSH) for source 0.0.0.0/0
-3. **Set up EC2 Instance**:
+3. **SSH into EC2 Instance**: Access your EC2 through SSH.
+    ```bash
+    ssh -i "your-key-pair.pem" ubuntu@ec2-xx-xxx-xxx-x.compute-1.amazonaws.com
+    ```
+4. **Set up EC2 Instance**:
    - Download Python 3.11.5 from Anaconda to avoid any Python version issues using:
      ```bash
      wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
      ```
   - Follow instructions at [this link](https://github.com/DataTalksClub/mlops-zoomcamp/tree/main/01-intro) to set up Docker properly.
-4. **Create S3 Bucket**: Create an S3 bucket using AWS CLI.
-5. **Clone the Repository**: Use SSH protocol to clone the repo.
+5. **Create S3 Bucket**: Create an S3 bucket using AWS CLI.
+6. **Clone the Repository**: Use SSH protocol to clone the repo.
     - Follow instructions [here](https://phoenixnap.com/kb/git-clone-ssh)
     - Then, run this command:
       ```bash
@@ -96,19 +101,97 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    - PREFECT_API_URL: Use http://127.0.0.1:4200/api for local development or replace 127.0.0.1 with EC2 Public IPv4 address if on EC2 instance.
    
 3. **Run set_env.sh**: This will save environment variables in a .env file.
-5. **Building and Running Docker Image**: Build and run the Docker image for a consistent and isolated environment.
-6. **Virtual Environment**: Create and activate a virtual environment for running specific scripts.
+   ```bash
+   source set_env.sh
+   ```
+4. **Building and Running Docker Image**: Build and run the Docker image for a consistent and isolated environment. This will run `src/predict.py`, an API endpoint that accepts flight details as an input and returns a delay prediction.
+   ```bash
+   docker build -t flight-delay-prediction:v1 .
+   ```
+   ```bash
+   docker run -it --rm -p 9696:9696 flight-delay-prediction:v1
+   ```
+5. **Virtual Environment**: Create and activate a virtual environment for running specific scripts.
+
+### Connecting to Servers
+
+1. **Open a New Terminal**
+2. **SSH into EC2 Instance**: Access your EC2 through SSH.
+    ```bash
+    ssh -i "your-key-pair.pem" ubuntu@ec2-xx-xxx-xxx-x.compute-1.amazonaws.com
+    ```
+3. **Move to Project Folder and Set Environment Variables**
+   ```bash
+   cd flight-delays/ && source set_env.sh
+   ```
+4. **Virtual Environment**: Create and activate a virtual environment for running specific scripts. After you run this once, you can use `pipenv shell` to activate the virtual environment.
+   ```bash
+   pip install --upgrade pip
+   ```
+   ```bash
+   pip install pipenv
+   ```
+   ```bash
+   pipenv install --system --deploy
+   ```
+   ```bash
+   pipenv shell
+   ```
+5. **Tracking with MLFlow**: Open MLFlow UI to keep track of experiments and model performance. If you are running this locally, remove `-h 0.0.0.0`.
+   ```bash
+   mlflow server --backend-store-uri sqlite:///backend.db --default-artifact-root=s3://$MLFLOW_S3_BUCKET/ -h 0.0.0.0
+   ```
+6. **Open a New Terminal and SSH into EC2 Instance**:
+    ```bash
+    ssh -i "your-key-pair.pem" ubuntu@ec2-xx-xxx-xxx-x.compute-1.amazonaws.com
+    ```
+7. **Setup Steps**: Run this command for every new terminal you SSH into. It will move you to the project directory, set environment variables, and activate the virtual environment.
+   ```bash
+   cd flight-delays/ && source set_env.sh && pipenv shell
+   ```
+8. **Orchestration with Prefect**: Let's connect to the Prefect Server. If you are running locally, please run only the second command.
+    ```bash
+    prefect config set PREFECT_SERVER_API_HOST=0.0.0.0
+    ```
+    ```bash
+    prefect server start
+    ```
+
+You should have three terminals running: Docker-deployed model API endpoint, MLFLow server, and Prefect server.
+    
 
 ### Running the Pipeline
 
-1. **Main Script**: Run `main.py` which handles data reading, feature engineering, model training, and evaluation.
-2. **Tracking with MLFlow**: Track experiments and model performance using MLFlow.
-3. **Monitoring with Evidently**: Generate monitoring reports to check data drift and classification performance.
-4. **API Endpoint**: Use `example.py` to test the API endpoint that provides delay predictions.
+1. **Setup Steps**: Open a new terminal and SSH into EC2 then run the command to move to the project directory, set environment variables, and activate the virtual environment.
+   ```bash
+   cd flight-delays/ && source set_env.sh && pipenv shell
+   ```
+2. **Main Script**: Run `src/main.py` which handles data reading, feature engineering, model training, hyperparameter tuning, evaluation, and monitoring reports. Running this command will serve the model but not trigger a run in Prefect. The workflow is fully deployed and runs on a schedule, but we will trigger a run to test it now.
+   ```bash
+   python src/main/py
+   ```
+3. **Setup Steps**: Open a new terminal and SSH into EC2 then run the command to move to the project directory, set environment variables, and activate the virtual environment.
+   ```bash
+   cd flight-delays/ && source set_env.sh && pipenv shell
+   ```
+4. **Deploy Prefect Flow**: Trigger a Prefect run by running the following command:
+   ```bash
+   prefect deployment run 'main-flow/train_flight_delay_model'
+   ```
+5. **API Endpoint**: Use `src/example.py` to test the Docker API endpoint that provides delay predictions.
+   ```bash
+   python src/example.py
+   ```
 
 ### Testing
 
-- **Unit Tests**: Test data reading and feature engineering steps.
+- **Unit Tests**: Test data reading and feature engineering steps conducted in `src/main.py`.
+  ```bash
+  python tests/unit_tests.py
+  ```
 - **Integration Test**: Test the connection and predictions from the Docker-deployed model.
+  ```bash
+  python tests/integration_test.py
+  ```
 
 
