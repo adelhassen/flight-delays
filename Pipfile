@@ -19,6 +19,7 @@ hyperopt = "*"
 evidently = "*"
 python-dotenv = "*"
 bottleneck = "==1.4.0"
+black = "*"
 
 [dev-packages]
 
