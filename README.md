@@ -196,6 +196,7 @@ You should have three terminals running: Docker-deployed model API endpoint, MLF
   ```bash
   python tests/unit_tests.py
   ```
+  **Note**: Since the two functions we are testing are Prefect tasks, the Prefect server needs to be running. Otherwise, we would have to copy the function code over to test them.
 - **Integration Test**: Test the connection and predictions from the Docker-deployed model.
   ```bash
   python tests/integration_test.py
