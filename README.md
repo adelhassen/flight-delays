@@ -126,7 +126,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    ```bash
    cd flight-delays/ && source set_env.sh
    ```
-4. **Virtual Environment**: Create and activate a virtual environment for running specific scripts. After you run this once, you can use `pipenv shell` to activate the virtual environment going forward.
+4. **Virtual Environment**: Create and activate a virtual environment for running specific scripts. After you run these commands once, you can use `pipenv shell` to activate the virtual environment in the future.
    ```bash
    pip install --upgrade pip
    ```
@@ -196,11 +196,16 @@ You should have three terminals running: Docker-deployed model API endpoint, MLF
   ```bash
   python tests/unit_tests.py
   ```
-  **Note**: Since the two functions we are testing are Prefect tasks, the Prefect server needs to be running. Otherwise, we would have to copy the function code over to test them.
+  **Note**: Since the two functions we are testing are Prefect tasks, the Prefect server needs to be running. Otherwise, we would have to copy the function code to test them.
 - **Integration Test**: Test the connection and predictions from the Docker-deployed model.
   ```bash
   python tests/integration_test.py
   ```
+  
+### Code Formatter
+
+- **Code Formatting**: The code formatted [Black](https://github.com/psf/black) ensures Python scripts are PEP 8 compliant.
+
 ### Improvements and Next Steps
 
 - **Improve Model**: Use more data, create historical features, and create more temporal features.
