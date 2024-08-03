@@ -35,7 +35,6 @@ from dotenv import load_dotenv
 def read_data(
     file_path: str, file_path_airline_codes: str = "data/L_UNIQUE_CARRIERS.csv"
 ):
-
     # Open the ZIP file
     with zipfile.ZipFile(file_path, "r") as z:
         # Identify the CSV file, ignoring system files like __MACOSX
@@ -92,7 +91,6 @@ def time_to_minutes(int_time):
 
 # Define function to create cyclical features
 def create_cyclical_features(df: pd.DataFrame, column: str, max_val: int):
-
     df[f"{column}_SIN"] = np.sin(2 * np.pi * df[column] / max_val)
     df[f"{column}_COS"] = np.cos(2 * np.pi * df[column] / max_val)
 
@@ -101,7 +99,6 @@ def create_cyclical_features(df: pd.DataFrame, column: str, max_val: int):
 
 @task
 def feature_engineering(df: pd.DataFrame):
-
     X = df.drop(["ARR_DEL15"], axis=1).copy()
     y = df["ARR_DEL15"].values
 
@@ -113,6 +110,7 @@ def feature_engineering(df: pd.DataFrame):
     X = create_cyclical_features(X, "CRS_DEP_TIME_MINUTES", 1440)
     X = create_cyclical_features(X, "CRS_ARR_TIME_MINUTES", 1440)
 
+    # Distance is highly correlated with CRS_ELAPSED_TIME
     # Drop distance because that would be hard for someone to find
     # Drop ARR_DELAY because we will use ARR_DEL15 to create a categorical ML problem
     X.drop(
@@ -135,7 +133,6 @@ def feature_engineering(df: pd.DataFrame):
 
 @task
 def transform_data(X_train_raw, X_val_raw, X_test_raw):
-
     categorical = ["AIRLINE", "ORIGIN", "DEST"]
     numerical = [
         "CRS_ELAPSED_TIME",
@@ -165,9 +162,7 @@ def transform_data(X_train_raw, X_val_raw, X_test_raw):
 
 @task
 def fit_base_models(model_name, X_train, X_val, y_train, y_val, dv):
-
     with mlflow.start_run():
-
         if not os.path.exists("./models"):
             os.makedirs("models")
 
@@ -198,7 +193,6 @@ def fit_base_models(model_name, X_train, X_val, y_train, y_val, dv):
 
 @task
 def tune_xgboost(train, valid, y_val, eval_metric, dv):
-
     def objective(params):
         with mlflow.start_run():
             mlflow.set_tag("model", "XGBClassifier")
@@ -263,7 +257,6 @@ def tune_xgboost(train, valid, y_val, eval_metric, dv):
 @task
 def train_and_log_model(train, valid, test, y_val, y_test, dv, params):
     with mlflow.start_run():
-
         mlflow.set_tag("model", "XGBClassifier")
         mlflow.set_tag("purpose", "Compare best models")
         mlflow.log_params(params)
@@ -309,7 +302,6 @@ def train_and_log_model(train, valid, test, y_val, y_test, dv, params):
 def run_register_model(
     train, valid, test, y_val, y_test, dv, client, MLFLOW_S3_BUCKET, top_n: 5
 ):
-
     # Retrieve the top_n model runs and log the models
     experiment = client.get_experiment_by_name("flight_delay")
     runs = client.search_runs(
@@ -346,7 +338,6 @@ def run_register_model(
 
 @task
 def get_monitoring_data(xgb_data, X, client, MLFLOW_S3_BUCKET):
-
     X = X.drop(["DISTANCE", "ARR_DELAY"], axis=1).copy()
 
     X["DAY_OF_WEEK"] = X["DAY_OF_WEEK"].replace(
@@ -388,7 +379,6 @@ def get_monitoring_data(xgb_data, X, client, MLFLOW_S3_BUCKET):
 
 @task
 def create_monitoring_report(reference_data, current_data, MLFLOW_S3_BUCKET):
-
     categorical = ["AIRLINE", "ORIGIN", "DEST", "DAY_OF_MONTH", "DAY_OF_WEEK"]
     numerical = ["CRS_DEP_TIME", "CRS_ARR_TIME", "CRS_ELAPSED_TIME"]
 
@@ -425,7 +415,6 @@ def create_monitoring_report(reference_data, current_data, MLFLOW_S3_BUCKET):
 
 @flow(task_runner=SequentialTaskRunner())
 def main_flow():
-
     load_dotenv(".env")
 
     MLFLOW_S3_BUCKET = os.getenv("MLFLOW_S3_BUCKET")
