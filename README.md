@@ -79,7 +79,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
      ```bash
      wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
      ```
-  - Follow instructions at [this link](https://github.com/DataTalksClub/mlops-zoomcamp/tree/main/01-intro) to set up Docker properly.
+   - Follow instructions at [this link](https://github.com/DataTalksClub/mlops-zoomcamp/tree/main/01-intro) to set up Docker properly.
 5. **Create S3 Bucket**: Create an S3 bucket using AWS CLI.
 6. **Clone the Repository**: Use SSH protocol to clone the repo.
     - Follow instructions [here](https://phoenixnap.com/kb/git-clone-ssh)
