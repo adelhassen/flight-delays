@@ -112,7 +112,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    - MLFLOW_TRACKING_URI: Use `http://127.0.0.1:5000` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
    - PREFECT_API_URL: Use `http://127.0.0.1:4200/api` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
    
-3. **Run Makefile target setup**: This will save environment variables in a .env file. Ensure `make` is installed on your machine (step 1 can be used on the EC2 instance to install make):
+3. **Run Makefile target setup**: This will save environment variables in a .env file. Ensure `make` is installed on your machine (the first command can be used on the EC2 instance to install make):
    ```bash
    sudo apt install make
    ```
