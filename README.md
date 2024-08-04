@@ -61,7 +61,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
 ### Machine Setup
 
 1. **Set up Machine**: Create an EC2 instance or run it locally on your computer. If you run on an EC2 instance:
-   ![images/ec2_setup.png](https://github.com/adelhassen/flight-delays/blob/7327c4bdc83599f4ff278b9e6392af31ba0599e3/images/ec2_setup.png)
+   ![images/ec2_setup.png](https://github.com/adelhassen/flight-delays/blob/93078fc1c03d44b57241890c5b21cdb2dbe9051a/images/ec2_setup.png)
 
    - Ubuntu
    - 64-bit (x86)
