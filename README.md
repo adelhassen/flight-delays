@@ -46,7 +46,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
 - **Virtual Environment**: Some scripts are run in a virtual environment to ensure compatibility and isolation of dependencies.
 
 ### Experiment Tracking
-- **MLFlow**: Used to track experiments, logging parameters, metrics, and models. It helps in comparing different models and selecting the best-performing one.
+- **MLFlow**: Used to track experiments, logging parameters, metrics, and models. It helps compare different models and select the best-performing one.
 
 ### Workflow Orchestration
 - **Prefect**: Manages and orchestrates the pipeline tasks, ensuring smooth execution and monitoring of the entire process.
@@ -102,9 +102,9 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    - MLFLOW_TRACKING_URI: Use `http://127.0.0.1:5000` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
    - PREFECT_API_URL: Use `http://127.0.0.1:4200/api` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
    
-3. **Run set_env.sh**: This will save environment variables in a .env file.
+3. **Run Makefile target setup**: This will save environment variables in a .env file and install pre-commit hooks. Ensure `make` is installed on your machine.
    ```bash
-   source set_env.sh
+   make setup
    ```
 4. **Building and Running Docker Image**: Build and run the Docker image for a consistent and isolated environment. This will run `src/predict.py`, an API endpoint that accepts flight details as an input and returns a delay prediction.
    ```bash
@@ -193,18 +193,18 @@ You should have three terminals running: Docker-deployed model API endpoint, MLF
 ### Testing
 
 - **Unit Tests**: Test data reading and feature engineering steps conducted in `src/main.py`.
-  ```bash
-  python tests/unit_tests.py
-  ```
-  **Note**: Since the two functions we are testing are Prefect tasks, the Prefect server needs to be running. Otherwise, we would have to copy the function code to test them.
 - **Integration Test**: Test the connection and predictions from the Docker-deployed model.
-  ```bash
-  python tests/integration_test.py
-  ```
+   ```bash
+   make test
+   ```
+**Note**: Since the two functions we are testing in the unit tests are Prefect tasks, the Prefect server needs to be running. Otherwise, we would have to copy the function code to test them.
   
 ### Code Formatter
 
-- **Code Formatting**: The code formatted [Black](https://github.com/psf/black) ensures Python scripts are PEP 8 compliant.
+- **Code Formatting**: The code formatted [Black](https://github.com/psf/black) ensures Python scripts are PEP 8 compliant. To run Black, use the following command.
+  ```bash
+  make quality_check
+  ```
 
 ### Improvements and Next Steps
 
