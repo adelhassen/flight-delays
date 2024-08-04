@@ -1,8 +1,14 @@
 SHELL := /bin/bash
 
-setup:
-	pre-commit install
+env_vars:
 	source set_env.sh
+
+setup:
+	pip install pre-commit
+	pre-commit install
+	pip install --upgrade pip
+	pip install pipenv
+	pipenv install --deploy
 
 quality_check:
 	black .
