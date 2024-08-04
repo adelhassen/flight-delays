@@ -79,7 +79,17 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
      ```bash
      wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
      ```
+     ```bash
+     bash Anaconda3-2023.09-0-Linux-x86_64.sh
+     ```
    - Follow instructions at [this link](https://github.com/DataTalksClub/mlops-zoomcamp/tree/main/01-intro) to set up Docker properly.
+   - Exit the EC2 instance then SSH into EC2 instance to allow Python and Docker changes to occur.
+     ```bash
+     exit
+     ```
+     ```bash
+     ssh -i "your-key-pair.pem" ubuntu@ec2-xx-xxx-xxx-x.compute-1.amazonaws.com
+     ```
 5. **Create S3 Bucket**: Create an S3 bucket using AWS CLI.
 6. **Clone the Repository**: Use SSH protocol to clone the repo.
     - Follow instructions [here](https://phoenixnap.com/kb/git-clone-ssh)
@@ -102,18 +112,21 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    - MLFLOW_TRACKING_URI: Use `http://127.0.0.1:5000` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
    - PREFECT_API_URL: Use `http://127.0.0.1:4200/api` for local development or replace `127.0.0.1` with EC2 Public IPv4 address if on EC2 instance.
    
-3. **Run Makefile target setup**: This will save environment variables in a .env file and install pre-commit hooks. Ensure `make` is installed on your machine.
+3. **Run Makefile target setup**: This will save environment variables in a .env file. Ensure `make` is installed on your machine (step 1 can be used on the EC2 instance to install make):
    ```bash
-   make setup
+   sudo apt install make
    ```
-4. **Building and Running Docker Image**: Build and run the Docker image for a consistent and isolated environment. This will run `src/predict.py`, an API endpoint that accepts flight details as an input and returns a delay prediction.
+   ```bash
+   make env_vars
+   ```
+5. **Building and Running Docker Image**: Build and run the Docker image for a consistent and isolated environment. This will run `src/predict.py`, an API endpoint that accepts flight details as an input and returns a delay prediction.
    ```bash
    docker build -t flight-delay-prediction:v1 .
    ```
    ```bash
    docker run -it --rm -p 9696:9696 flight-delay-prediction:v1
    ```
-5. **Virtual Environment**: Create and activate a virtual environment for running specific scripts.
+6. **Virtual Environment**: Create and activate a virtual environment for running specific scripts.
 
 ### Connecting to Servers
 
@@ -128,13 +141,7 @@ The dataset is preprocessed to retain only the relevant columns and remove any r
    ```
 4. **Virtual Environment**: Create and activate a virtual environment for running specific scripts. After you run these commands once, you can use `pipenv shell` to activate the virtual environment in the future.
    ```bash
-   pip install --upgrade pip
-   ```
-   ```bash
-   pip install pipenv
-   ```
-   ```bash
-   pipenv install --system --deploy
+   make setup
    ```
    ```bash
    pipenv shell
